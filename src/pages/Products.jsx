@@ -1,0 +1,142 @@
+import React, { useMemo, useState, useEffect } from 'react';
+import ProductCard from '../components/ProductCard.jsx';
+
+export default function Products({ products, onAdd }) {
+  const [q, setQ] = useState('');
+  const [heat, setHeat] = useState('all');        // existing heat filter
+  const [category, setCategory] = useState('all'); // new: powder | seeds | heat
+
+  // Inject minimal CSS for dark selects with black text (safe to keep here or move to index.css)
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.innerHTML = `
+      .select-dark {
+        appearance: none; -webkit-appearance: none; -moz-appearance: none;
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.18);
+        color: #000; /* black text in the closed control */
+        padding-right: 34px;
+        position: relative;
+        border-radius: 10px;
+      }
+      .select-dark option {
+        color: #000;           /* black text in menu */
+        background: #f4f4f7;   /* light menu background for readability */
+      }
+      .select-dark:focus {
+        outline: 2px solid #ffd166;
+        box-shadow: 0 0 0 6px rgba(255,209,102,0.15);
+      }
+      .select-dark {
+        background-image:
+          linear-gradient(180deg, rgba(0,0,0,0) 0, rgba(0,0,0,0) 100%),
+          url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 20 12' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill='%23ffd166' d='M10 12L0 0h20L10 12z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 10px center;
+        background-size: 12px 8px;
+      }
+      @-moz-document url-prefix() {
+        .select-dark { color: #000; background-color: rgba(255,255,255,0.85); }
+        .select-dark option { color: #000; background: #fff; }
+      }
+      select.select-dark::-ms-value { color: #000; background: #fff; }
+    `;
+    document.head.appendChild(style);
+    return () => document.head.removeChild(style);
+  }, []);
+
+  // Heuristics for quick category classification by name/value
+  const isPowder = (p) => {
+    const n = p.name.toLowerCase();
+    return n.includes('powder') || n.includes('paprika') || n.includes('masala') || n.includes('cinnamon');
+  };
+  const isSeed = (p) => {
+    const n = p.name.toLowerCase();
+    return n.includes('seed') || n.includes('seeds') || n.includes('cumin') || n.includes('coriander') || n.includes('cardamom');
+  };
+  const isHeatForward = (p) => {
+    const n = p.name.toLowerCase();
+    return n.includes('chili') || n.includes('pepper') || p.heat >= 2;
+  };
+
+  const filtered = useMemo(() => {
+    const t = q.trim().toLowerCase();
+
+    return products.filter(p => {
+      // 1) Search
+      const nameHit = !t || p.name.toLowerCase().includes(t);
+      if (!nameHit) return false;
+
+      // 2) Category (new)
+      if (category !== 'all') {
+        if (category === 'powder' && !isPowder(p)) return false;
+        if (category === 'seeds' && !isSeed(p)) return false;
+        if (category === 'heat' && !isHeatForward(p)) return false;
+      }
+
+      // 3) Heat (existing)
+      const heatHit = heat === 'all' || String(p.heat) === heat;
+      return heatHit;
+    });
+  }, [q, category, heat, products]);
+
+  return (
+    <section style={{ padding: '28px 0' }}>
+      <h2 style={{ marginTop: 0 }}>Our Spices</h2>
+
+      <div className="card" style={{ padding: 12 }}>
+        <div className="flex" style={{ alignItems: 'stretch', gap: 10 }}>
+          {/* Search */}
+          <input
+            className="input"
+            placeholder="Search spices..."
+            value={q}
+            onChange={e => setQ(e.target.value)}
+          />
+
+          {/* Category (new) */}
+          <select
+            className="input select-dark"
+            style={{ maxWidth: 200 }}
+            value={category}
+            onChange={e => setCategory(e.target.value)}
+            aria-label="Category"
+            title="Category"
+          >
+            <option value="all">Category: All</option>
+            <option value="powder">Powder</option>
+            <option value="seeds">Seeds</option>
+            <option value="heat">Heat</option>
+          </select>
+
+          {/* Heat (existing) */}
+          <select
+            className="input select-dark"
+            style={{ maxWidth: 160 }}
+            value={heat}
+            onChange={e => setHeat(e.target.value)}
+            aria-label="Heat"
+            title="Heat"
+          >
+            <option value="all">Heat: All</option>
+            <option value="0">Mild (0)</option>
+            <option value="1">Gentle (1)</option>
+            <option value="2">Warm (2)</option>
+            <option value="3">Hot (3)</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Grid unchanged */}
+      <div className="grid grid-3" style={{ marginTop: 16 }}>
+        {filtered.map(p => (
+          <ProductCard key={p.id} product={p} onAdd={onAdd} />
+        ))}
+      </div>
+
+      {filtered.length === 0 && (
+        <p className="muted" style={{ marginTop: 16 }}>No spices match your filters.</p>
+      )}
+    </section>
+  );
+}
