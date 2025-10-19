@@ -1,6 +1,10 @@
 import React, { useMemo } from 'react';
 
-export default function Cart({ items, products, onAdd, onDec, onRemove, total }) {
+const fallbackInr = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' });
+
+export default function Cart({ items, products, onAdd, onDec, onRemove, total, totalFormatted, formatPrice }) {
+  const fmt = formatPrice || ((n) => fallbackInr.format(n));
+
   const list = useMemo(() => {
     return Object.entries(items).map(([id, qty]) => {
       const p = products.find(x => x.id === id);
@@ -32,7 +36,7 @@ export default function Cart({ items, products, onAdd, onDec, onRemove, total })
                 />
                 <div>
                   <div style={{ fontWeight: 700 }}>{item.name}</div>
-                  <div className="muted">${item.price.toFixed(2)} each</div>
+                  <div className="muted">{fmt(item.price)} each</div>
                 </div>
               </div>
               <div className="flex">
@@ -46,7 +50,7 @@ export default function Cart({ items, products, onAdd, onDec, onRemove, total })
             </div>
             <div className="flex-between" style={{ marginTop: 8 }}>
               <span className="muted">Line total</span>
-              <span className="badge">${item.line.toFixed(2)}</span>
+              <span className="badge">{fmt(item.line)}</span>
             </div>
           </div>
         ))}
@@ -54,7 +58,7 @@ export default function Cart({ items, products, onAdd, onDec, onRemove, total })
 
       <div className="flex-between" style={{ marginTop: 16 }}>
         <h3>Total</h3>
-        <div className="badge" style={{ fontSize: 16 }}>${total.toFixed(2)}</div>
+        <div className="badge" style={{ fontSize: 16 }}>{totalFormatted || fmt(total)}</div>
       </div>
 
       <button className="btn" style={{ marginTop: 14, width: '100%' }}>

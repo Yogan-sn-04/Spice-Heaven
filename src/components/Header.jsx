@@ -9,7 +9,7 @@ const linkStyle = ({ isActive }) => ({
   fontWeight: 700
 });
 
-export default function Header({ cartCount = 0 }) {
+export default function Header({ cartCount = 0, cartTotalFormatted, formatPrice }) {
   return (
     <nav className="nav">
       <Link to="/" className="flex" aria-label="Spice Heaven home">
@@ -26,6 +26,7 @@ export default function Header({ cartCount = 0 }) {
 
         <Link to="/cart" className="btn" aria-label="Cart">
           🛒 Cart {cartCount > 0 ? `(${cartCount})` : ''}
+          {cartCount > 0 && (cartTotalFormatted || (formatPrice && formatPrice(0))) ? ` • ${cartTotalFormatted}` : ''}
         </Link>
       </div>
     </nav>

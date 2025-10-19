@@ -1,12 +1,11 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import ProductCard from '../components/ProductCard.jsx';
 
-export default function Products({ products, onAdd }) {
+export default function Products({ products, onAdd, formatPrice }) {
   const [q, setQ] = useState('');
-  const [heat, setHeat] = useState('all');        // existing heat filter
-  const [category, setCategory] = useState('all'); // new: powder | seeds | heat
+  const [heat, setHeat] = useState('all');
+  const [category, setCategory] = useState('all');
 
-  // Inject minimal CSS for dark selects with black text (safe to keep here or move to index.css)
   useEffect(() => {
     const style = document.createElement('style');
     style.innerHTML = `
@@ -14,15 +13,12 @@ export default function Products({ products, onAdd }) {
         appearance: none; -webkit-appearance: none; -moz-appearance: none;
         background: rgba(255,255,255,0.08);
         border: 1px solid rgba(255,255,255,0.18);
-        color: #000; /* black text in the closed control */
+        color: #000;
         padding-right: 34px;
         position: relative;
         border-radius: 10px;
       }
-      .select-dark option {
-        color: #000;           /* black text in menu */
-        background: #f4f4f7;   /* light menu background for readability */
-      }
+      .select-dark option { color: #000; background: #f4f4f7; }
       .select-dark:focus {
         outline: 2px solid #ffd166;
         box-shadow: 0 0 0 6px rgba(255,209,102,0.15);
@@ -45,7 +41,6 @@ export default function Products({ products, onAdd }) {
     return () => document.head.removeChild(style);
   }, []);
 
-  // Heuristics for quick category classification by name/value
   const isPowder = (p) => {
     const n = p.name.toLowerCase();
     return n.includes('powder') || n.includes('paprika') || n.includes('masala') || n.includes('cinnamon');
@@ -61,20 +56,14 @@ export default function Products({ products, onAdd }) {
 
   const filtered = useMemo(() => {
     const t = q.trim().toLowerCase();
-
     return products.filter(p => {
-      // 1) Search
       const nameHit = !t || p.name.toLowerCase().includes(t);
       if (!nameHit) return false;
-
-      // 2) Category (new)
       if (category !== 'all') {
         if (category === 'powder' && !isPowder(p)) return false;
         if (category === 'seeds' && !isSeed(p)) return false;
         if (category === 'heat' && !isHeatForward(p)) return false;
       }
-
-      // 3) Heat (existing)
       const heatHit = heat === 'all' || String(p.heat) === heat;
       return heatHit;
     });
@@ -86,15 +75,12 @@ export default function Products({ products, onAdd }) {
 
       <div className="card" style={{ padding: 12 }}>
         <div className="flex" style={{ alignItems: 'stretch', gap: 10 }}>
-          {/* Search */}
           <input
             className="input"
             placeholder="Search spices..."
             value={q}
             onChange={e => setQ(e.target.value)}
           />
-
-          {/* Category (new) */}
           <select
             className="input select-dark"
             style={{ maxWidth: 200 }}
@@ -108,8 +94,6 @@ export default function Products({ products, onAdd }) {
             <option value="seeds">Seeds</option>
             <option value="heat">Heat</option>
           </select>
-
-          {/* Heat (existing) */}
           <select
             className="input select-dark"
             style={{ maxWidth: 160 }}
@@ -127,10 +111,9 @@ export default function Products({ products, onAdd }) {
         </div>
       </div>
 
-      {/* Grid unchanged */}
       <div className="grid grid-3" style={{ marginTop: 16 }}>
         {filtered.map(p => (
-          <ProductCard key={p.id} product={p} onAdd={onAdd} />
+          <ProductCard key={p.id} product={p} onAdd={onAdd} formatPrice={formatPrice} />
         ))}
       </div>
 

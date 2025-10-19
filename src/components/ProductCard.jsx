@@ -1,25 +1,24 @@
 import React from 'react';
 
-export default function ProductCard({ product, onAdd }) {
+const fallbackInr = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' });
+
+export default function ProductCard({ product, onAdd, formatPrice }) {
+  const fmt = formatPrice || ((n) => fallbackInr.format(n));
   return (
-    <div className="card" role="article" aria-label={product.name}>
+    <div className="card" style={{ overflow: 'hidden' }}>
       <img
         src={product.image}
         alt={product.name}
         style={{ width: '100%', height: 180, objectFit: 'cover' }}
         loading="lazy"
       />
-      <div className="card-body">
+      <div style={{ padding: 12 }}>
+        <h3 style={{ margin: '4px 0 6px', fontWeight: 700 }}>{product.name}</h3>
+        <div className="muted" style={{ marginBottom: 6 }}>Origin: {product.origin}</div>
         <div className="flex-between">
-          <h3 style={{ margin: 0 }}>{product.name}</h3>
-          <span className="badge">${product.price.toFixed(2)}</span>
+          <span className="badge">{fmt(product.price)}</span>
+          <button className="btn" onClick={() => onAdd(product)}>Add to Cart</button>
         </div>
-        <div className="muted" style={{ marginTop: 6 }}>
-          Origin: {product.origin} • Heat: {product.heat}/3
-        </div>
-        <button className="btn" style={{ marginTop: 10 }} onClick={() => onAdd(product)}>
-          Add to Cart
-        </button>
       </div>
     </div>
   );
